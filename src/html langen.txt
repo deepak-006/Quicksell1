@@ -1,0 +1,206 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Board</title>
+    <script src="https://unpkg.com/react/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.js"></script>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            padding: 16px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .dropdown {
+            position: relative;
+        }
+        .dropdown button {
+            background-color: white;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 8px 16px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            margin-top: 8px;
+            width: 192px;
+            background-color: white;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .dropdown-content button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        .dropdown-content button:hover {
+            background-color: #f3f4f6;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .board {
+            display: flex;
+            gap: 16px;
+        }
+        .column {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            width: 256px;
+        }
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .column-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        .column-header span {
+            color: #6b7280;
+        }
+        .tasks {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .task {
+            background-color: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-header h3 {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .task-header span {
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+        .task p {
+            margin-top: 8px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const fetchData = async () => {
+            const response = await fetch('https://api.quicksell.co/v1/internal/frontend-assignment');
+            const data = await response.json();
+            return data;
+        };
+
+        const groupBy = (items, key) => {
+            return items.reduce((result, item) => {
+                (result[item[key]] = result[item[key]] || []).push(item);
+                return result;
+            }, {});
+        };
+
+        const sortBy = (items, key, ascending = true) => {
+            return items.sort((a, b) => {
+                if (a[key] < b[key]) return ascending ? -1 : 1;
+                if (a[key] > b[key]) return ascending ? 1 : -1;
+                return 0;
+            });
+        };
+
+        const KanbanBoard = () => {
+            const [tickets, setTickets] = useState([]);
+            const [grouping, setGrouping] = useState(localStorage.getItem('grouping') || 'status');
+            const [sorting, setSorting] = useState(localStorage.getItem('sorting') || 'priority');
+
+            useEffect(() => {
+                fetchData().then(data => setTickets(data));
+            }, []);
+
+            useEffect(() => {
+                localStorage.setItem('grouping', grouping);
+                localStorage.setItem('sorting', sorting);
+            }, [grouping, sorting]);
+
+            const groupedTickets = groupBy(tickets, grouping);
+            const sortedGroupedTickets = Object.keys(groupedTickets).map(key => ({
+                key,
+                tickets: sortBy(groupedTickets[key], sorting, sorting === 'title')
+            }));
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <div className="dropdown">
+                            <button>Display</button>
+                            <div className="dropdown-content">
+                                <button onClick={() => setGrouping('status')}>Group by Status</button>
+                                <button onClick={() => setGrouping('user')}>Group by User</button>
+                                <button onClick={() => setGrouping('priority')}>Group by Priority</button>
+                            </div>
+                        </div>
+                        <div className="dropdown">
+                            <button>Sort</button>
+                            <div className="dropdown-content">
+                                <button onClick={() => setSorting('priority')}>Sort by Priority</button>
+                                <button onClick={() => setSorting('title')}>Sort by Title</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="board">
+                        {sortedGroupedTickets.map(group => (
+                            <div key={group.key} className="column">
+                                <div className="column-header">
+                                    <h2>{group.key}</h2>
+                                    <span>{group.tickets.length}</span>
+                                </div>
+                                <div className="tasks">
+                                    {group.tickets.map(ticket => (
+                                        <div key={ticket.id} className="task">
+                                            <div className="task-header">
+                                                <h3>{ticket.id}</h3>
+                                                <span>{ticket.type}</span>
+                                            </div>
+                                            <p>{ticket.title}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<KanbanBoard />, document.getElementById('root'));
+    </script>
+</body>
+</html>

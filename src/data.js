@@ -1,0 +1,1 @@
+const API = "https://quicksell.co/v1/internal/frontend-assignment";

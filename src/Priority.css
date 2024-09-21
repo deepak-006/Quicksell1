@@ -1,0 +1,49 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #ccc;
+  }
+  
+  .full-width-list {
+    display: flex;
+    justify-content: space-between; /* Evenly space items across the width */
+    align-items: stretch;
+    height: 80vh; /* Full viewport height */
+    margin: 80px;
+    padding: 0;
+    list-style-type: none;
+  }
+  
+  .full-width-list li {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc; 
+    background-color: lightblue; /* Optional for visibility */
+    height: 14%; /* Make each <li> cover the full height */
+
+  }
+  ul {
+    border: 1px solid #5c5c5c;
+    width: 18vw;
+    border-radius: 3px;
+    margin-right: 2px;
+    padding: 0;
+    margin-left: 2px;
+  }
+  label {
+    display: block;
+    margin: auto;
+    background-color: #8c8b8b;
+    width: match-parent;
+    font-size: 28px;
+  }
+  .cardOutline {
+    width: 100%;
+    height: 18wh;
+    background-color: aliceblue;
+    box-shadow: #5c5c5c;
+    font-size: 10px;
+  }
